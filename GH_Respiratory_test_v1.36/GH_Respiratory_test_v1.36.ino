@@ -83,7 +83,7 @@ void setup(void) {
   pinMode(buzzer, OUTPUT);
   lcd2.begin();
   ads.begin();
-//  buzzerRpd5();
+  //  buzzerRpd5();
 }
 
 
@@ -233,7 +233,7 @@ void readMaskTemp() {
         Serial.println(mx);
         getMaskTemp();
 
-        if ((MASK - ROOM) > 0.5) {
+        if ((MASK - ROOM) > 0.39) {
 
           while ( (currentRead < previousRead) ) { // <
             Serial.print("previousRead at start of while loop: ");
@@ -452,9 +452,10 @@ void bpmCheck() {
     else if ((fBPM > 19)) {
       lcd2.setCursor(8, 0);
       lcd2.print("       ");
+      lcd2.setCursor(0, 1);
+      lcd2.print("       ");
       //  lcd2.print("R=");
       lcd2.setCursor(8, 0);
-
       lcd2.print("Rapid");
       buzzerRpd5();
     }
@@ -469,6 +470,8 @@ void bpmCheck() {
     else if ((fBPM == 0)) {
       lcd2.setCursor(8, 0);
       lcd2.print("       ");
+      lcd2.setCursor(0, 1);
+      lcd2.print("       ");
       //  lcd2.print("R=");
       lcd2.setCursor(8, 0);
       lcd2.print("No Brth");
@@ -476,6 +479,8 @@ void bpmCheck() {
     }
     else if ((fBPM <= 3)) {
       lcd2.setCursor(8, 0);
+      lcd2.print("       ");
+      lcd2.setCursor(0, 1);
       lcd2.print("       ");
       //  lcd2.print("R=");
       lcd2.setCursor(8, 0);

@@ -462,10 +462,12 @@ void bpmCheck() {
     else if ((fBPM < 12) && (fBPM > 3)) {
       lcd2.setCursor(8, 0);
       lcd2.print("       ");
+      lcd2.setCursor(0, 1);
+      lcd2.print("       ");
       //  lcd2.print("R=");
       lcd2.setCursor(8, 0);
       lcd2.print("Slow");
-      //      buzzerSlow();
+      buzzerRpd5();
     }
     else if ((fBPM == 0)) {
       lcd2.setCursor(8, 0);

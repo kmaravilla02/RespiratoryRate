@@ -83,6 +83,7 @@ void setup(void) {
   pinMode(buzzer, OUTPUT);
   lcd2.begin();
   ads.begin();
+//  buzzerRpd5();
 }
 
 
@@ -114,6 +115,8 @@ void loop(void) {
     sum = 0;
 
   }
+  bpmCheck();
+  //buzzerRpd3();
 }
 
 
@@ -228,37 +231,41 @@ void readMaskTemp() {
         currentRead = mx;
         Serial.print("currentRead: ");
         Serial.println(mx);
+        getMaskTemp();
 
-        while ( (currentRead < previousRead) ) { // <
-          Serial.print("previousRead at start of while loop: ");
-          Serial.println(previousRead);
-          nBPS = BPS + 1;
-          BPS = nBPS;
+        if ((MASK - ROOM) > 0.6) {
 
-          Serial.println("setting previousRead to currentRead");
+          while ( (currentRead < previousRead) ) { // <
+            Serial.print("previousRead at start of while loop: ");
+            Serial.println(previousRead);
+            nBPS = BPS + 1;
+            BPS = nBPS;
+
+            Serial.println("setting previousRead to currentRead");
+            previousRead = currentRead;
+
+            Serial.println("Reading again currentRead inside while loop");
+            currentRead = ads.readADC_SingleEnded(0);
+            Serial.print("Breath ADC: ");
+            Serial.println(currentRead);
+            getMaskTemp();
+            outputMaskSerial();
+            outputMaskLCD();
+            //outputMaskLCDtest();
+
+            //previousRead = currentRead;
+            Serial.print("previous after Breath ADC: ");
+            Serial.println(previousRead);
+
+          }
+
           previousRead = currentRead;
-
-          Serial.println("Reading again currentRead inside while loop");
-          currentRead = ads.readADC_SingleEnded(0);
-          Serial.print("Breath ADC: ");
-          Serial.println(currentRead);
-          getMaskTemp();
-          outputMaskSerial();
-          outputMaskLCD();
-          //outputMaskLCDtest();
-
-          //previousRead = currentRead;
-          Serial.print("previous after Breath ADC: ");
+          Serial.print("previousRead after testing while loop: ");
           Serial.println(previousRead);
 
+          Serial.print("fBPS ");
+          Serial.println(BPS);
         }
-
-        previousRead = currentRead;
-        Serial.print("previousRead after testing while loop: ");
-        Serial.println(previousRead);
-
-        Serial.print("fBPS ");
-        Serial.println(BPS);
 
         previousTime_2 = timerPollStart;
         previousTime_3 = timerStart;
@@ -266,7 +273,7 @@ void readMaskTemp() {
       //Serial.print("maskPollingEnd: ");
       //Serial.println(millis());
 
-      if (((BPS - prevBPS) >= 3) ) {//&& ((BPS - prevBPS) <5) ) { //&& ((currentRead - previousRead) >= 3)) {
+      if (((BPS - prevBPS) >= 4) ) {//&& ((BPS - prevBPS) <5) ) { //&& ((currentRead - previousRead) >= 3)) {
         nBPM = BPM + 1;
         BPM = nBPM;
       }
@@ -449,7 +456,7 @@ void bpmCheck() {
       lcd2.setCursor(8, 0);
 
       lcd2.print("Rapid");
-      buzzerRpd();
+      buzzerRpd5();
     }
     else if ((fBPM < 12) && (fBPM > 3)) {
       lcd2.setCursor(8, 0);
@@ -465,15 +472,15 @@ void bpmCheck() {
       //  lcd2.print("R=");
       lcd2.setCursor(8, 0);
       lcd2.print("No Brth");
-      buzzerRpd();
+      buzzerRpd5();
     }
-    else if ((fBPM < 3)) {
+    else if ((fBPM <= 3)) {
       lcd2.setCursor(8, 0);
       lcd2.print("       ");
       //  lcd2.print("R=");
       lcd2.setCursor(8, 0);
       lcd2.print("Halted");
-      buzzerRpd();
+      buzzerRpd5();
     }
   }
 
@@ -508,39 +515,13 @@ void buzzerRpd() {
   //  }
 }
 
-void buzzerRpd2() {
-  for (int i = 0; i < 255; i++) { //do this 255 times
-    analogWrite(buzzer, i); //raise the voltage sent out of the pin by 1
-    //delay(10); //wait 10 milliseconds to repeat
-  }
 
-  for (int i = 255; i > 0; i--) { // do this 255 times
-    analogWrite(buzzer, i); //lower the voltage sent out of the pin by 1
-    //delay(10); //wait 10 milliseconds to repeat
-  }
-}
-
-void buzzerRpd3() {
-  //for (int u = 0; u < 50; u++)
-  //buzzerSound1 = millis();
-
-  do {
+void buzzerRpd5() {
+  for (i = 0; i < 10000; i++)
+  {
     digitalWrite(buzzer, HIGH);
-    buzzerTime = millis();
-
-    //buzzerSound1 = millis();
-
-  } while (( buzzerTime - currentTime ) <= buzzerSoundRpd);
-  digitalWrite(buzzer, LOW);
-
-}
-
-
-
-void buzzerOn() {
-  digitalWrite(buzzer, HIGH);
-}
-
-void buzzerOff() {
-  digitalWrite(buzzer, LOW);
+    delay(1);//wait for 1ms
+    digitalWrite(buzzer, LOW);
+    delay(1);//wait for 1ms
+  }
 }

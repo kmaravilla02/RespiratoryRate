@@ -233,7 +233,7 @@ void readMaskTemp() {
         Serial.println(mx);
         getMaskTemp();
 
-        if ((MASK - ROOM) > 0.6) {
+        if ((MASK - ROOM) > 0.5) {
 
           while ( (currentRead < previousRead) ) { // <
             Serial.print("previousRead at start of while loop: ");

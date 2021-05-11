@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_ADS1015.h>
 #include <LiquidCrystal_I2C.h>
-#include <ezBuzzer.h>
+//#include <ezBuzzer.h>
 
 Adafruit_ADS1115 ads(0x48);
 LiquidCrystal_I2C lcd2(0x26, 16, 2);
@@ -96,10 +96,6 @@ void loop(void) {
   BPM = 0;
   BPS = 0;
 
-  //buzzerRpd();
-
-  //bpmCheck();
-  buzzerOn();
   currentTime = millis();
   if ( (currentTime - previousTime_1) >= maskPoll_1) { //500
 
@@ -130,9 +126,6 @@ void loop(void) {
 
   }
   //bpmCheck();
-  delay(1);
-  buzzerOff();
-  //buzzerRpd3();
 }
 
 
@@ -512,6 +505,8 @@ void bpmCheck() {
   }
 
 }
+
+
 
 void buzzerRpd() {
   //for (int u = 0; u < 50; u++)

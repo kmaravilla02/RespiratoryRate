@@ -524,4 +524,5 @@ void buzzerRpd5() {
     digitalWrite(buzzer, LOW);
     delay(1);//wait for 1ms
   }
+  fBPM = 99;
 }

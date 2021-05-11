@@ -1,9 +1,11 @@
 #include <Wire.h>
 #include <Adafruit_ADS1015.h>
 #include <LiquidCrystal_I2C.h>
+#include <ezBuzzer.h>
 
 Adafruit_ADS1115 ads(0x48);
 LiquidCrystal_I2C lcd2(0x26, 16, 2);
+//ezBuzzer buzz(buzzer);
 
 int i;
 
@@ -21,7 +23,7 @@ float sum = 0;
 int16_t currentRead;
 int16_t previousRead = 0;
 
-float Vin = 5.00;
+float Vin = 4.92;
 
 float Voltage = 0.0;
 int thermistor_25 = 10000;
@@ -54,10 +56,11 @@ unsigned long buzzerSound1;
 
 const unsigned long maskPoll_1 = 500;
 const unsigned long maskPoll_2 = 200;
+unsigned long maskPollTime = 0;
 
 const unsigned long maskTimer = 60000;
 
-const unsigned long buzzerSoundRpd = 2;
+const unsigned long buzzerSoundRpd = 1;
 //const unsigned long buzzerSoundSlow = 50;
 //const unsigned long buzzerSoundHlt = 80;
 
@@ -96,13 +99,14 @@ void loop(void) {
   //buzzerRpd();
 
   //bpmCheck();
+  buzzerOn();
   currentTime = millis();
   if ( (currentTime - previousTime_1) >= maskPoll_1) { //500
 
     getMaskPollingTemp();
     outputPollSerial();
-    outputPollLCDtest();
-    //    outputPollLCD();
+    //    outputPollLCDtest();
+    outputPollLCD();
 
     previousRead = 0;
 
@@ -110,20 +114,25 @@ void loop(void) {
 
     switchToRoom();
     readRoomTemp();
-    outputPollLCDtest();
-    //    outputPollLCD();
+    //    outputPollLCDtest();
+    outputPollLCD();
 
     //  delay(5000);
     switchToMask();
     readMaskTemp();
 
-    bpmCheck();
+    //bpmCheck();
+
 
     //    ROOM = 0;
     sum = 0;
     //    roomReadings = 0;
 
   }
+  //bpmCheck();
+  delay(1);
+  buzzerOff();
+  //buzzerRpd3();
 }
 
 
@@ -212,10 +221,10 @@ void readMaskTemp() {
 
   getMaskTemp();
   outputMaskSerial();
-  outputMaskLCDtest();
-  //outputMaskLCD();
+  //outputMaskLCDtest();
+  outputMaskLCD();
 
-  if (((MASKpoll - ROOM) > 0.2) && ((MASK - MASKpoll) > 0.08)) {
+  if (((MASKpoll - ROOM) > 0.2) && ((MASK - MASKpoll) > 0.1)) {
     timerStart = millis();
     Serial.print("Start: ");
     Serial.println(timerStart);
@@ -226,31 +235,46 @@ void readMaskTemp() {
       timerPollStart = millis();
 
       if ( (timerPollStart - previousTime_2) >= maskPoll_2) {
+        maskPollTime = timerPollStart - previousTime_2;
+
         Serial.print("maskPolling: ");
         Serial.println(timerPollStart);
+
+        Serial.print("Actual Poll time: ");
+        Serial.println(maskPollTime);
 
         mx = ads.readADC_SingleEnded(0);
         currentRead = mx;
         Serial.print("currentRead: ");
         Serial.println(mx);
 
-        while ( (currentRead < previousRead) ) {
+        while ( (currentRead < previousRead) ) { // <
+          Serial.print("previousRead at start of while loop: ");
+          Serial.println(previousRead);
           nBPS = BPS + 1;
           BPS = nBPS;
 
+          Serial.println("setting previousRead to currentRead");
           previousRead = currentRead;
+
+          Serial.println("Reading again currentRead inside while loop");
           currentRead = ads.readADC_SingleEnded(0);
           Serial.print("Breath ADC: ");
           Serial.println(currentRead);
           getMaskTemp();
           outputMaskSerial();
-          outputMaskLCDtest();
+          outputMaskLCD();
+          //outputMaskLCDtest();
 
-          Serial.print("previous: ");
+          //previousRead = currentRead;
+          Serial.print("previous after Breath ADC: ");
           Serial.println(previousRead);
 
         }
+
         previousRead = currentRead;
+        Serial.print("previousRead after testing while loop: ");
+        Serial.println(previousRead);
 
         Serial.print("fBPS ");
         Serial.println(BPS);
@@ -261,7 +285,7 @@ void readMaskTemp() {
       //Serial.print("maskPollingEnd: ");
       //Serial.println(millis());
 
-      if (((BPS - prevBPS) >= 4) ) {//&& ((BPS - prevBPS) <5) ) { //&& ((currentRead - previousRead) >= 3)) {
+      if (((BPS - prevBPS) >= 3) ) {//&& ((BPS - prevBPS) <5) ) { //&& ((currentRead - previousRead) >= 3)) {
         nBPM = BPM + 1;
         BPM = nBPM;
       }
@@ -290,13 +314,13 @@ void readMaskTemp() {
       Serial.print("BPM ");
       Serial.println(fBPM);
 
-      //getMaskTemp();
+      getMaskTemp();
 
       Serial.println("Last Mask Output to Serial");
       outputMaskSerial();
       Serial.println("Last Mask Output to LCD, then set prevBPS to fBPS");
-      //      outputMaskLCD();
-      outputMaskLCDtest();
+      outputMaskLCD();
+      //outputMaskLCDtest();
 
       prevBPS = BPS;
       Serial.print("PrevBPS: ");
@@ -514,4 +538,39 @@ void buzzerRpd() {
   //      buzzerTime = buzzerSound1;
   //    }
   //  }
+}
+
+void buzzerRpd2() {
+  for (int i = 0; i < 255; i++) { //do this 255 times
+    analogWrite(buzzer, i); //raise the voltage sent out of the pin by 1
+    //delay(10); //wait 10 milliseconds to repeat
+  }
+
+  for (int i = 255; i > 0; i--) { // do this 255 times
+    analogWrite(buzzer, i); //lower the voltage sent out of the pin by 1
+    //delay(10); //wait 10 milliseconds to repeat
+  }
+}
+
+void buzzerRpd3() {
+  //for (int u = 0; u < 50; u++)
+  //buzzerSound1 = millis();
+
+  do {
+    digitalWrite(buzzer, HIGH);
+    buzzerTime = millis();
+
+    //buzzerSound1 = millis();
+
+  } while (( buzzerTime - currentTime ) <= buzzerSoundRpd);
+  digitalWrite(buzzer, LOW);
+
+}
+
+void buzzerOn() {
+  digitalWrite(buzzer, HIGH);
+}
+
+void buzzerOff() {
+  digitalWrite(buzzer, LOW);
 }

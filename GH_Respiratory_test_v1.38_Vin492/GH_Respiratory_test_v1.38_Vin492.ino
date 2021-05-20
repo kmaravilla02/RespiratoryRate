@@ -27,7 +27,7 @@ int16_t previousRead = 0;
 float Vin = 4.92;
 
 float Voltage = 0.0;
-int thermistor_25 = 10000;
+float thermistor_25 = 10000;
 float refCurrent = 0.0001;
 float resistance = 0;
 
@@ -126,7 +126,7 @@ void getADC() {
 }
 
 void getTempe() {
-  Voltage = (currentRead * Vin) / 65535; // Replace 5.0 with whatever the actual Vcc of your Arduino is
+  Voltage = currentRead * (Vin / 65535); // Replace 5.0 with whatever the actual Vcc of your Arduino is
   resistance = (Voltage / refCurrent); // Using Ohm's Law to calculate resistance of thermistor
   float ln = log(resistance / thermistor_25); // Log of the ratio of thermistor resistance and resistance at 25 deg. C
 
@@ -139,7 +139,7 @@ void getTempe() {
 
 void getRoomTemp() {
   //  adcROOM_max = ads.readADC_SingleEnded(0); // Read ADC value from ADS1115
-  Voltage = (adcROOM_data1 * Vin) / 65535; // Replace 5.0 with whatever the actual Vcc of your Arduino is
+  Voltage = adcROOM_data1 * (Vin / 65535); // Replace 5.0 with whatever the actual Vcc of your Arduino is
   resistance = (Voltage / refCurrent); // Using Ohm's Law to calculate resistance of thermistor
   float ln = log(resistance / thermistor_25); // Log of the ratio of thermistor resistance and resistance at 25 deg. C
 
@@ -155,9 +155,11 @@ void readRoomTemp() {
     adcROOM_data1 = ads.readADC_SingleEnded(0);
 
     getRoomTemp();
+//    outputRoomSerial();
 
     Serial.print("RoomTemp ");
     Serial.println(ROOM);
+
 
     sum = sum + ROOM;
 
@@ -175,7 +177,7 @@ void readRoomTemp() {
 
 void getMaskPollingTemp() {
   adc0 = ads.readADC_SingleEnded(0); // Read ADC value from ADS1115
-  Voltage = (adc0 * Vin) / 65535; // Replace 5.0 with whatever the actual Vcc of your Arduino is
+  Voltage = adc0 * (Vin / 65535); // Replace 5.0 with whatever the actual Vcc of your Arduino is
   resistance = (Voltage / refCurrent); // Using Ohm's Law to calculate resistance of thermistor
   float ln = log(resistance / thermistor_25); // Log of the ratio of thermistor resistance and resistance at 25 deg. C
 
@@ -187,7 +189,7 @@ void getMaskPollingTemp() {
 
 void getMaskTemp() {
   //currentRead = ads.readADC_SingleEnded(0); // Read ADC value from ADS1115
-  Voltage = (currentRead * Vin) / 65535; // Replace 5.0 with whatever the actual Vcc of your Arduino is
+  Voltage = currentRead * (Vin / 65535); // Replace 5.0 with whatever the actual Vcc of your Arduino is
   resistance = (Voltage / refCurrent); // Using Ohm's Law to calculate resistance of thermistor
   float ln = log(resistance / thermistor_25); // Log of the ratio of thermistor resistance and resistance at 25 deg. C
 
@@ -304,6 +306,8 @@ void readMaskTemp() {
     }
     while ( (timerCheck - timerStart) < maskTimer);
 
+    fBPM = fBPM +1;
+
     Serial.print("End: ");
     Serial.println(previousTime_2);
 
@@ -336,6 +340,18 @@ void outputMaskSerial() {
   Serial.print("\tMsk Res: ");
   Serial.println(resistance, 7);
 }
+
+void outputRoomSerial() {
+  Serial.print("ROOM ADC: "); // Print ADC value to Serial Monitor
+  Serial.print(adcROOM_data1);
+  Serial.print("\tROOM Temp: "); // Print temperature to Serial Monitor in Celcius
+  Serial.print(ROOM, 7);
+  Serial.print("\tROOM Voltage: ");
+  Serial.print(Voltage, 7);
+  Serial.print("\tROOM Res: ");
+  Serial.println(resistance, 7);
+}
+
 
 
 void outputPollLCD() {
